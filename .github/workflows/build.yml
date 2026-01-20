@@ -29,7 +29,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller --onefile --windowed --name="GoldPriceCrawler" gold_price_crawler.py
+          pyinstaller --onefile --name="GoldPriceCrawler" gold_price_crawler.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
