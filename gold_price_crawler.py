@@ -434,41 +434,19 @@ def main():
             break
         elif cmd == 'start':
             print(f"\n定时任务已开启，每天 {SCHEDULE_TIME} 自动执行")
-            print("提示: 输入 'stop' 停止定时任务\n")
+            print("提示: 输入 'stop' 停止定时任务")
+            print("注意: 部分环境下无法在定时任务期间交互，可使用 Ctrl+C 停止\n")
 
             # 设置定时任务
             schedule.every().day.at(SCHEDULE_TIME).do(scheduled_task)
 
             try:
+                # 先执行一次检查
+                schedule.run_pending()
+
                 while True:
-                    schedule.run_pending()
-
-                    # 检查用户输入（非阻塞）
-                    try:
-                        import select
-                        import sys
-                        if select.select([sys.stdin], [], [], 0)[0]:
-                            user_cmd = sys.stdin.readline().strip()
-                            if user_cmd:
-                                user_cmd_lower = user_cmd.lower()
-                                if user_cmd_lower == 'stop':
-                                    schedule.clear()
-                                    print("定时任务已停止，返回交互模式")
-                                    break
-                                elif user_cmd_lower.startswith('set_time '):
-                                    time_str = user_cmd[9:].strip()
-                                    if set_schedule_time(time_str):
-                                        schedule.clear()
-                                        schedule.every().day.at(SCHEDULE_TIME).do(scheduled_task)
-                                        print(f"定时任务已重新设置为每天 {SCHEDULE_TIME} 执行")
-                                elif user_cmd_lower == 'run_once':
-                                    scheduled_task()
-                                elif user_cmd_lower == 'help':
-                                    show_help()
-                    except:
-                        pass
-
                     time.sleep(60)  # 每分钟检查一次
+                    schedule.run_pending()
             except KeyboardInterrupt:
                 print("\n定时任务已停止")
                 schedule.clear()
