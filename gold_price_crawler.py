@@ -413,8 +413,34 @@ def scheduled_task():
         print("2. 检查网站是否可访问: http://www.huangjinjiage.cn/gold/bjcbjj.html")
         print("3. 网站结构可能发生变化，需要调整解析逻辑")
 
+import sys
+
+def has_stdin():
+    """检查是否有可用的标准输入流"""
+    try:
+        # 尝试访问 sys.stdin
+        sys.stdin.fileno()
+        # 检查是否为终端或有效输入流
+        return sys.stdin.isatty() or not sys.stdin.closed
+    except (AttributeError, OSError):
+        return False
+
 def main():
     """主函数"""
+    # 检查命令行参数
+    if len(sys.argv) > 1:
+        mode = sys.argv[1].lower()
+        if mode in ['--run', '-r', 'run']:
+            # 自动运行模式：执行一次任务后退出
+            print("=" * 50)
+            print("黄金价格爬虫脚本 - 自动运行模式")
+            print("=" * 50)
+            init_database()
+            scheduled_task()
+            print("\n任务完成！程序将在5秒后自动退出...")
+            time.sleep(5)
+            return
+
     print("=" * 50)
     print("黄金价格爬虫脚本 - 北京菜百金价")
     print("=" * 50)
@@ -422,12 +448,46 @@ def main():
     # 初始化数据库
     init_database()
 
+    # 检查是否有标准输入流
+    if not has_stdin():
+        print("\n检测到无交互环境（如双击exe文件），将执行以下操作:")
+        print("1. 立即执行一次爬取任务并生成Excel")
+        print("2. 切换到定时任务模式（每天自动执行）")
+        print(f"   定时时间: {SCHEDULE_TIME}")
+        print("提示：也可以通过命令行参数运行: program.exe --run\n")
+
+        # 立即执行一次爬取任务
+        scheduled_task()
+
+        # 进入定时任务模式
+        print(f"\n定时任务已开启，每天 {SCHEDULE_TIME} 自动执行")
+        print("提示: 按 Ctrl+C 可停止程序\n")
+
+        # 设置定时任务
+        schedule.every().day.at(SCHEDULE_TIME).do(scheduled_task)
+
+        try:
+            # 先执行一次检查
+            schedule.run_pending()
+
+            while True:
+                time.sleep(60)  # 每分钟检查一次
+                schedule.run_pending()
+        except KeyboardInterrupt:
+            print("\n定时任务已停止")
+            schedule.clear()
+        return
+
     # 显示帮助信息
     show_help()
 
     # 交互模式
     while True:
-        cmd = input("\n请输入命令: ").strip().lower()
+        try:
+            cmd = input("\n请输入命令: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print("\n程序退出")
+            break
 
         if cmd == 'exit':
             print("程序退出")
