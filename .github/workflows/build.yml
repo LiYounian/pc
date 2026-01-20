@@ -41,5 +41,8 @@ jobs:
         with:
           files: dist/GoldPriceCrawler.exe
           generate_release_notes: true
+          draft: false
+          prerelease: false
+          name: Release ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
