@@ -1,162 +1,245 @@
-# 黄金价格爬虫 - Windows 可执行文件编译说明
+# 黄金价格爬虫工具
 
-## 方案一：在 macOS 上编译（使用 Wine + PyInstaller）
+## 项目简介
 
-### 步骤：
+这是一个用于爬取北京菜百金价每日黄金价格的自动化工具。该工具可以从指定网站爬取最新的黄金价格数据，将其保存到SQLite数据库中，并支持导出到Excel文件。同时支持定时任务功能，可以按照设定的时间自动执行爬取任务。
 
-1. **安装 Homebrew**（如果未安装）
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
+## 功能特性
 
-2. **安装 Wine**
-   ```bash
-   brew install --cask wine-stable
-   ```
+- **数据爬取**：自动从北京菜百金价官网爬取最新的黄金价格数据
+- **数据存储**：将爬取的数据保存到SQLite本地数据库
+- **数据导出**：支持从数据库导出数据到Excel文件，自动去重
+- **定时任务**：支持设置定时任务，每天在指定时间自动执行爬取
+- **交互式命令**：提供友好的命令行交互界面
+- **数据查询**：支持查询数据库中的历史数据
 
-3. **运行编译脚本**
-   ```bash
-   chmod +x build_windows_exe.sh
-   ./build_windows_exe.sh
-   ```
+## 环境要求
 
-4. **获取 .exe 文件**
-   编译完成后，.exe 文件位于 `dist/GoldPriceCrawler.exe`
+- Python 3.7 或更高版本
+- Windows/Linux/macOS 操作系统
 
----
+## 依赖库
 
-## 方案二：使用 GitHub Actions 自动编译（推荐，更简单）
+程序依赖以下第三方库（详见 `requirements.txt`）：
 
-### 步骤：
-
-1. **创建 GitHub 仓库**
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   gh repo create gold-price-crawler --public --source=.
-   git push -u origin main
-   ```
-
-2. **创建 Actions 配置文件**
-   创建 `.github/workflows/build.yml`：
-   ```yaml
-   name: Build Windows EXE
-
-   on:
-     push:
-       tags:
-         - 'v*'
-     workflow_dispatch:
-
-   jobs:
-     build:
-       runs-on: windows-latest
-       steps:
-         - uses: actions/checkout@v3
-
-         - name: Set up Python
-           uses: actions/setup-python@v4
-           with:
-             python-version: '3.12'
-
-         - name: Install dependencies
-           run: |
-             pip install pyinstaller
-             pip install -r requirements.txt
-
-         - name: Build EXE
-           run: |
-             pyinstaller --onefile --windowed --name="GoldPriceCrawler" gold_price_crawler.py
-
-         - name: Upload artifact
-           uses: actions/upload-artifact@v3
-           with:
-             name: GoldPriceCrawler-Windows
-             path: dist/GoldPriceCrawler.exe
-   ```
-
-3. **触发编译**
-   - 推送标签触发：`git tag v1.0.0 && git push origin v1.0.0`
-   - 或在 GitHub 网页上手动触发 Actions
-
-4. **下载 .exe 文件**
-   在 GitHub Actions 页面下载构建好的 .exe 文件
-
----
-
-## 方案三：使用 Docker + Wine
-
-### 步骤：
-
-1. **创建 Dockerfile**
-   ```dockerfile
-   FROM ubuntu:22.04
-
-   RUN apt-get update && apt-get install -y \
-       wine64 \
-       python3 \
-       curl \
-       && rm -rf /var/lib/apt/lists/*
-
-   WORKDIR /app
-   COPY requirements.txt .
-   COPY gold_price_crawler.py .
-
-   RUN python3 -m pip install pyinstaller
-   RUN python3 -m pip install -r requirements.txt
-
-   RUN pyinstaller --onefile --windowed --name="GoldPriceCrawler" gold_price_crawler.py
-   ```
-
-2. **构建镜像**
-   ```bash
-   docker build -t gold-crawler .
-   ```
-
-3. **提取 .exe 文件**
-   ```bash
-   docker run --rm -v $(pwd):/output gold-crawler cp dist/GoldPriceCrawler.exe /output/
-   ```
-
----
-
-## 给 Windows 用户的说明
-
-### 使用方法：
-
-1. 下载 `GoldPriceCrawler.exe` 文件
-2. 双击运行（无需安装 Python）
-3. 程序会在同目录下生成 Excel 文件
-
-### 注意事项：
-
-- 首次运行可能需要网络连接下载黄金价格数据
-- Windows 10/11 需要允许程序运行（系统可能提示"未知发行者"）
-- 确保系统防火墙允许程序访问网络
-
-### 如果遇到问题：
-
-- 杀毒软件可能误报，请添加到白名单
-- 提示缺少 DLL 文件：尝试以管理员身份运行
-- 程序闪退：在命令行运行查看错误信息
-
----
-
-## 推荐：方案二（GitHub Actions）
-
-**为什么推荐方案二？**
-- ✅ 无需在 Mac 上安装 Wine
-- ✅ 使用真实的 Windows 环境编译，兼容性更好
-- ✅ 可以自动化构建和发布
-- ✅ GitHub 免费提供 Windows 环境
-- ✅ 构建速度快，可重复使用
-
----
-
-## 测试 .exe 文件
-
-在 Mac 上可以使用 Wine 测试 .exe 文件：
-```bash
-wine dist/GoldPriceCrawler.exe
 ```
+requests>=2.31.0        # HTTP请求库
+beautifulsoup4>=4.12.0  # HTML解析库
+pandas>=2.1.0           # 数据处理库
+openpyxl>=3.1.0         # Excel文件操作库
+lxml>=4.9.0             # XML/HTML解析库
+schedule>=1.2.0         # 定时任务库
+```
+
+## 安装步骤
+
+### 1. 安装Python
+
+确保系统已安装Python 3.7或更高版本。可以通过以下命令检查Python版本：
+
+```bash
+python --version
+```
+
+或
+
+```bash
+python3 --version
+```
+
+### 2. 安装依赖
+
+在项目目录下执行以下命令安装所需依赖：
+
+```bash
+pip install -r requirements.txt
+```
+
+## 使用方法
+
+### 启动程序
+
+在命令行中运行：
+
+```bash
+python gold_price_crawler.py
+```
+
+### 命令说明
+
+程序启动后进入交互模式，支持以下命令：
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `run_once` | 立即执行一次爬取任务 | `run_once` |
+| `set_time HH:MM` | 修改定时任务的执行时间（24小时制） | `set_time 14:30` |
+| `start` | 开启定时任务模式，每天在设定时间自动执行 | `start` |
+| `stop` | 停止定时任务 | `stop` |
+| `export` | 从数据库导出数据到Excel文件 | `export` |
+| `query [N]` | 查询数据库中的最新N条记录（不指定N则查询全部） | `query 10` |
+| `help` | 显示帮助信息 | `help` |
+| `exit` | 退出程序 | `exit` |
+
+### 使用示例
+
+#### 示例1：立即执行一次爬取
+
+```bash
+请输入命令: run_once
+```
+
+程序将立即执行爬取任务，包括：
+- 从网站爬取最新数据
+- 将数据保存到数据库
+- 导出Excel文件
+
+#### 示例2：设置定时任务
+
+```bash
+请输入命令: set_time 12:00
+请输入命令: start
+```
+
+程序将在每天12:00自动执行爬取任务。
+
+#### 示例3：查询历史数据
+
+```bash
+请输入命令: query 10
+```
+
+查询数据库中最新10条记录。
+
+#### 示例4：导出数据到Excel
+
+```bash
+请输入命令: export
+```
+
+程序将：
+- 从数据库读取所有数据
+- 按照"首饰名称"、"更新日期"去重
+- 生成带时间戳的Excel文件（格式：`information_YYYYMMDD_HHMMSS.xlsx`）
+
+## 数据说明
+
+### 数据字段
+
+爬取的数据包含以下字段：
+
+- **首饰名称**：黄金首饰的名称（如：千足金、万足金等）
+- **最新价格**：当前价格
+- **单位**：价格单位（通常为：元/克）
+- **纯度**：黄金纯度（如：99.9%、99.99%等）
+- **更新日期**：官网更新的日期
+- **爬取时间**：程序实际爬取的时间
+
+### 数据存储
+
+数据存储在SQLite数据库文件 `gold_price.db` 中，数据库结构如下：
+
+```sql
+CREATE TABLE gold_prices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    首饰名称 TEXT,
+    最新价格 TEXT,
+    单位 TEXT,
+    纯度 TEXT,
+    更新日期 TEXT,
+    爬取时间 TEXT,
+    创建时间 DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+```
+
+### 数据去重
+
+导出Excel时会自动进行以下处理：
+1. 按照"首饰名称"、"更新日期"、"爬取时间"排序
+2. 按照"首饰名称"、"更新日期"去重，保留每组中爬取时间最新的记录
+
+## 数据来源
+
+程序从以下网址爬取数据：
+
+```
+http://www.huangjinjiage.cn/gold/bjcbjj.html
+```
+
+该网站提供北京菜百金价的实时报价信息。
+
+## 常见问题
+
+### 1. 爬取失败怎么办？
+
+如果遇到爬取失败的情况，请检查：
+
+- 网络连接是否正常
+- 目标网站是否可以正常访问
+- 网站结构是否发生变化（可能需要调整解析逻辑）
+
+### 2. 如何修改定时任务时间？
+
+使用 `set_time` 命令修改时间，格式为 `HH:MM`（24小时制）。例如：
+
+```bash
+set_time 09:00
+```
+
+### 3. 如何查看历史数据？
+
+使用 `query` 命令查看数据库中的数据：
+
+```bash
+query          # 查看全部数据
+query 50       # 查看最新50条记录
+```
+
+### 4. Excel文件保存在哪里？
+
+导出的Excel文件保存在程序所在目录，文件名格式为：
+
+```
+information_YYYYMMDD_HHMMSS.xlsx
+```
+
+例如：`information_20260120_144505.xlsx`
+
+### 5. 如何停止定时任务？
+
+在定时任务运行期间，输入 `stop` 命令即可停止：
+
+```bash
+stop
+```
+
+## 注意事项
+
+1. **网络连接**：程序需要稳定的网络连接才能正常爬取数据
+2. **网站访问**：目标网站可能会随时更新结构或限制访问，如遇问题请检查网站状态
+3. **数据备份**：建议定期备份 `gold_price.db` 数据库文件
+4. **定时任务**：开启定时任务后，程序需要保持运行状态，关闭程序会停止定时任务
+5. **编码问题**：程序已处理中文编码问题，但如果遇到乱码，可能是网站编码发生变化
+
+## 编译为可执行文件
+
+在Windows系统上，可以使用 `build_windows_exe.sh` 脚本将Python脚本编译为可执行文件：
+
+```bash
+bash build_windows_exe.sh
+```
+
+编译完成后，会生成独立的可执行文件，无需安装Python环境即可运行。
+
+## 许可证
+
+本项目仅供学习和个人使用。
+
+## 更新日志
+
+### v1.0
+- 初始版本
+- 支持基本爬取功能
+- 支持数据库存储
+- 支持Excel导出
+- 支持定时任务
+- 支持交互式命令行界面
