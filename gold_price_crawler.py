@@ -353,7 +353,7 @@ def show_help():
 
 def handle_command(cmd):
     """处理用户命令"""
-    cmd = cmd.strip().lower()
+    cmd = cmd.strip()
 
     if cmd == 'run_once':
         scheduled_task()
@@ -429,7 +429,7 @@ def main():
     """主函数"""
     # 检查命令行参数
     if len(sys.argv) > 1:
-        mode = sys.argv[1].lower()
+        mode = sys.argv[1]
         if mode in ['--run', '-r', 'run']:
             # 自动运行模式：执行一次任务后退出
             print("=" * 50)
@@ -484,7 +484,7 @@ def main():
     # 交互模式
     while True:
         try:
-            cmd = input("\n请输入命令: ").strip().lower()
+            cmd = input("\n请输入命令: ")
         except (EOFError, KeyboardInterrupt):
             print("\n程序退出")
             break
